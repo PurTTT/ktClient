@@ -24,10 +24,13 @@ public interface AcMapper {
 	@Update("update room set fee=(#{fee})")
 	int updateFee(@Param("fee") Integer fee);
 	
+	@Update("update room set state=(#{state})")
+	int changeState(@Param("state") Integer state);
+	
 	@Update("update room set windSpeed=(#{windSpeed}),targetTemperature=(#{targetTemperature})"
 			+ " where roomNum = (#{roomNum})")
 	int updateTandW(@Param("windSpeed") Integer windSpeed,@Param("targetTemperature") 
-	Float targetTemperature,@Param("roomNum") Integer roomNum);
+	double tem,@Param("roomNum") Integer roomNum);
 	
 	@Select("select * from room")
 	List findRoomList();
@@ -35,4 +38,16 @@ public interface AcMapper {
 	@Select("select * from room where roomNum = (#{roomNum})")
 	Room findRoom(@Param("roomNum") Integer roomNum);
 	
+	@Update("update room set temperature = temperature + 0.4 where windSpeed = 1 and targetTemperature > temperature")
+	int ScheduleUpdate();
+	
+	/*DB-BillList*/
+	@Insert("insert into BillList(roomId,beginTime,price,eSpeed) "
+			+ "value(#{roomId},#{beginTime},#{price},#{eSpeed})")
+	int newBill(@Param("roomId") Integer roomId,@Param("beginTime") String beginTime,
+			@Param("price") Integer price,@Param("eSpeed") double eSpeed);
+	@Update("update BillList set endTime = (#{endTime}),windTime = (#{windTime}),"
+			+ "fee = (#{fee}) where roomId = (#{roomId}) and endTime is null")
+	int updateBill(@Param("endTime") String endTime,@Param("windTime") long windTime,
+			@Param("fee") double fee,@Param("roomId") Integer roomId);
 }
