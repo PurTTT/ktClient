@@ -30,4 +30,7 @@ public class Bill {
 	public void setOuttime(String outTime) {
 		this.outTime = outTime;
 	}
+	public String toString() {
+		return roomId+" "+inTime+" "+outTime+" "+totalFee; 
+	}
 }
