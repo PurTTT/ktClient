@@ -14,14 +14,11 @@ import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.apache.ibatis.annotations.Param;
+import com.client.entity.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import net.sf.json.JSONArray;
 
-import com.client.entity.Bill;
-import com.client.entity.BillList;
-import com.client.entity.Request;
-import com.client.entity.Room;
 import com.client.mapper.AcMapper;
 import com.client.util.Dispatch;
 
@@ -55,6 +52,18 @@ public class AcService {
 	int updateTandW(Integer windSpeed,double tem,Integer roomNum) {
 		return mapper.updateTandW(windSpeed, tem, roomNum);
 	}
+	int addOpenTime(Integer roomNum) {
+		return mapper.addOpenTime(roomNum);
+	}
+	int addWR(Integer roomNum) {
+		return mapper.addWR(roomNum);
+	}
+	int addTR(Integer roomNum) {
+		return mapper.addTR(roomNum);
+	}
+//	int addtotalR(Integer roomNum) {
+//		return mapper.addTR(roomNum);
+//	}
 	/*DB-BillList*/
 	int newBill(Integer roomId,String beginTime,Integer price,double eSpeed) {
 		return mapper.newBill(roomId, beginTime, price, eSpeed);
@@ -64,6 +73,9 @@ public class AcService {
 	}
 	List<BillList> selectBillList(Integer roomId) {
 		return mapper.selectBillList(roomId);
+	}
+	List<DailySheet> checkDailySheet(String beginTime, String endTime) {
+		return mapper.checkDailySheet(beginTime, endTime);
 	}
 	Bill selectBill(Integer roomId) {
 		return mapper.selectBill(roomId);
@@ -129,6 +141,7 @@ public class AcService {
                 	if(num2 == 1) {		//用户入住
                 		changeState(1,room_id);	//0 未用 1入住 2工作 3暂停
                 		updateIntime(nowtime,room_id);
+                		addOpenTime(room_id);
                 	}
                 	else if(num2 == 2) {	//用户退房
                 		changeState(0,room_id);
@@ -185,6 +198,10 @@ public class AcService {
                 		float tem = sc.nextFloat();
                         newRequest(room_id, wind, tem, nowtime);//DB-request
                 		int dResult = dispatch.newRequset(room_id, wind, tem);
+                		if(wind != 0)
+                			addWR(room_id);
+                		if(tem != 0)
+                			addTR(room_id);
             			double eSpeed = 0.33;	//耗电速度
             			if(wind == 2) eSpeed = 0.5; else if(wind == 3) eSpeed = 1;
                 		if(dResult == 0) {//放入等待队列	
@@ -226,11 +243,8 @@ public class AcService {
                 	}
                 	else if(num2 == 3) {
                 		List<Room> findAll = findRoomList();
-                		StringBuffer fa = new StringBuffer();
-                		for(int i = 0;i < findAll.size();i++){
-                		    fa.append(findAll.get(i).toString()+"\n");
-                		}
-                		outputStream.write(("Room:"+fa.toString()).getBytes());
+						JSONArray js = JSONArray.fromObject(findAll); //List转为json
+						outputStream.write((js.toString()).getBytes());
                 	}
                 	else System.out.println("命令错误，没有此项操作");
                 }
@@ -238,9 +252,20 @@ public class AcService {
                 	Scanner sc = new Scanner(data);
                 	int num1 = sc.nextInt();
                 	int num2 = sc.nextInt();
-                	if(num2 == 1) {		//获得报表
-                		int beTime = sc.nextInt();	//起始时间
-                		int endTime = sc.nextInt();
+                	String beginTime = data.substring(4, 12);
+                	String endTime = data.substring(13, 21);
+                	if(num2 == 1) {		//获得日报表
+						StringBuilder sb = new StringBuilder(beginTime); //格式化日期
+						sb.insert(4, "-");
+						sb.insert(7, "-");
+						beginTime = sb.toString();
+						StringBuilder sb1 = new StringBuilder(endTime);
+						sb1.insert(4, "-");
+						sb1.insert(7, "-");
+						endTime = sb1.toString();
+						List<DailySheet> ds = checkDailySheet(beginTime, endTime);
+						JSONArray js = JSONArray.fromObject(ds);
+						outputStream.write((js.toString()).getBytes());
                 	}
                 	else System.out.println("命令错误，没有此项操作");
                 }
