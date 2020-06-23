@@ -36,7 +36,7 @@ public class Dispatch {
 		if(busyNum <= workNum) {	//有空闲工作位——开始工作
 			for(int i=0;i<busyNum;i++) {
 				if(roomId == workLine[i].getRoomId()) {
-					workLine[i].setWind(wind);	//查看工作队列中是否已有该房间
+					//workLine[i].setWind(wind);	//查看工作队列中是否已有该房间
 					return 1;
 				}
 			}
@@ -49,7 +49,7 @@ public class Dispatch {
 				workLine[busyNum] = rs;
 				busyNum = busyNum + 1;
 				outAll();
-				return 1;
+				return 2;
 			}
 		}
 		if(busyNum >= workNum) {		//判断能否抢占
@@ -154,7 +154,7 @@ public class Dispatch {
 		for(int i=0;i<busyNum;i++) {	//1-关机的房间在工作队列
 			if(workLine[i].getRoomId() == roomId) {
 				wtime = (dateToStamp(btime) - 
-						dateToStamp(workLine[i].getBeginTime()))/1000;
+						dateToStamp(workLine[i].getBeginTime()))/1000; //送风时长
 				if(waitNum == 0) {	//等待队列中没有请求
 					rs = workLine[i];
 					workLine[i] = workLine[workNum-1];

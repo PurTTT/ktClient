@@ -43,14 +43,22 @@ public class AcService {
 	int findWind(Integer roomNum) {
 		return mapper.findWind(roomNum);
 	}
+	List<Integer> selectRoomNum() {return mapper.selectRoomNum();}
+//	List<Integer> selectWorkingRoom(){return mapper.selectWorkingRoom();}
 	List<Room> findRoomList(){//显示所有用户信息
 		return mapper.findRoomList();
 	}
-	Room findRoom(Integer roomNum){//显示用户信息
+	float selectUT(Integer roomNum) {return mapper.selectUT(roomNum);}
+	float selectLT(Integer roomNum) {return mapper.selectLT(roomNum);}
+	int updateNotWorking1(Integer roomNum) {return mapper.updateNotWorking1(roomNum);}
+	int updateNotWorking2(Integer roomNum) {return mapper.updateNotWorking2(roomNum);}
+	int pause(Integer roomNum) {return mapper.pause(roomNum);}
+	int restart(Integer roomNum) {return mapper.restart(roomNum);}
+	List<Room> findRoom(Integer roomNum){//显示用户信息
 		return mapper.findRoom(roomNum);
 	}
-	int updateTandW(Integer windSpeed,double tem,Integer roomNum) {
-		return mapper.updateTandW(windSpeed, tem, roomNum);
+	int updateTandW(Integer windSpeed,double tem,Integer roomNum, Integer state) {
+		return mapper.updateTandW(windSpeed, tem, roomNum, state);
 	}
 	int addOpenTime(Integer roomNum) {
 		return mapper.addOpenTime(roomNum);
@@ -61,9 +69,9 @@ public class AcService {
 	int addTR(Integer roomNum) {
 		return mapper.addTR(roomNum);
 	}
-//	int addtotalR(Integer roomNum) {
-//		return mapper.addTR(roomNum);
-//	}
+	int updateDispatchTime(Integer roomNum) {
+		return mapper.updateDispatchTime(roomNum);
+	}
 	/*DB-BillList*/
 	int newBill(Integer roomId,String beginTime,Integer price,double eSpeed) {
 		return mapper.newBill(roomId, beginTime, price, eSpeed);
@@ -71,14 +79,14 @@ public class AcService {
 	int updateBill(String endTime,long windTime,double fee,int dResult) {
 		return mapper.updateBill(endTime, windTime, fee, dResult);
 	}
-	List<BillList> selectBillList(Integer roomId) {
-		return mapper.selectBillList(roomId);
+	List<BillList> selectBillList(Integer roomId, String inTime, String outTime) {
+		return mapper.selectBillList(roomId, inTime, outTime);
 	}
 	List<DailySheet> checkDailySheet(String beginTime, String endTime) {
 		return mapper.checkDailySheet(beginTime, endTime);
 	}
-	Bill selectBill(Integer roomId) {
-		return mapper.selectBill(roomId);
+	List<Bill> selectBill(Integer roomId, String outTime) {
+		return mapper.selectBill(roomId, outTime);
 	}
 	int ScheduleUpdate() {
 		return mapper.ScheduleUpdate();
@@ -111,6 +119,13 @@ public class AcService {
 	int updateTotalFee(double total,Integer roomId){
 		return mapper.updateTotalFee(total, roomId);
 	}
+	String selectInTime(Integer roomId, String outTime) {
+		return mapper.selectInTime(roomId, outTime);
+	}
+	List<Bill> selectFullBill(Integer roomId) {
+		return mapper.selectFullBill(roomId);
+	}
+	int newLogIn(Integer roomId) {return mapper.newLogIn(roomId);}
 	/*DB-request*/
 	int newRequest(Integer roomId,Integer wind,double temperature,String create_time) {
 		return mapper.newRequest(roomId, wind, temperature, create_time);
@@ -118,8 +133,10 @@ public class AcService {
 	public void start() throws IOException {
         Timer timer = new Timer();
         ScheduleTask scheduleTask = new ScheduleTask();
+        NotWorking notWorking = new NotWorking();
         Calendar calendar = Calendar.getInstance();
         timer.schedule(scheduleTask,calendar.getTime(),30000); //单位毫秒
+		timer.schedule(notWorking, calendar.getTime(), 60000); //非工作状态
 		ServerSocket ss = new ServerSocket(8088);
         boolean flag = true;
         while (flag) {
@@ -140,32 +157,24 @@ public class AcService {
                 	int room_id = sc.nextInt();
                 	if(num2 == 1) {		//用户入住
                 		changeState(1,room_id);	//0 未用 1入住 2工作 3暂停
+						newLogIn(room_id);
                 		updateIntime(nowtime,room_id);
-                		addOpenTime(room_id);
                 	}
                 	else if(num2 == 2) {	//用户退房
                 		changeState(0,room_id);
                 		updateOuttime(nowtime,room_id);
                 		double total = totalFee(room_id);
                 		updateTotalFee(total,room_id);
-                		Bill sb = selectBill(room_id);
-                		List<BillList> sb1 = selectBillList(room_id);
-                		StringBuffer sb2 = new StringBuffer();
-                		for(int i = 0;i < sb1.size();i++){
-                		    sb2.append(sb1.get(i).toString()+"\n");
-                		}
-                		outputStream.write(("Bill:"+sb2).getBytes());
-                		outputStream.write(("Total:"+sb.toString()).getBytes());
+                		List<Bill> sb = selectBill(room_id, nowtime);
+                		List<BillList> sb1 = selectBillList(room_id, selectInTime(room_id, nowtime), nowtime);
+						JSONArray js = JSONArray.fromObject(sb); //List转为json
+						JSONArray js1 = JSONArray.fromObject(sb1); //List转为json
+						outputStream.write(("账单：" + js.toString() + "\n详单：" + js1.toString()).getBytes());
                 	}
-                	else if(num2 == 3) {	//查询List
-                		//Bill sb = selectBill(room_id);
-                		List<BillList> sb1 = selectBillList(room_id);
-                		StringBuffer sb2 = new StringBuffer();
-                		for(int i = 0;i < sb1.size();i++){
-                		    sb2.append(sb1.get(i).toString()+"\n");
-                		}
-                		outputStream.write(("Bill:"+sb2).getBytes());
-                		//outputStream.write(("Total:"+sb.toString()).getBytes());
+                	else if(num2 == 3) {	//查询某个房间的所有账单
+                		List<Bill> sb = selectFullBill(room_id);
+						JSONArray js = JSONArray.fromObject(sb); //List转为json
+						outputStream.write((js.toString()).getBytes());
                 	}
                 	else System.out.println("命令错误，没有此项操作");
                 }
@@ -176,6 +185,7 @@ public class AcService {
                 	int room_id = sc.nextInt();
                 	if(num2 == 1) {		//房间空调开机
                 		changeState(2,room_id);	//DB-room
+						addOpenTime(room_id); //房间空调开关机次数+1
                 	}
                 	else if(num2 == 2) {	//房间空调关机
                 		changeState(1,room_id);
@@ -184,11 +194,11 @@ public class AcService {
             			double eSpeed = 0.33;	//耗电速度
             			if(findWind(room_id) == 2) eSpeed = 0.5; else if(findWind(room_id) == 3) eSpeed = 1;
                 		long windTime = dispatch.getWtime();
-                		double fee = windTime*1*eSpeed;
-                		if(result == 0) {
+                		double fee = windTime*1*eSpeed; //送风时间*1元/度*耗电标准
+                		if(result == 0) { //等待队列为空
                 			updateBill(btime,windTime,fee,room_id);
                 		}
-                		else if(result == 1) {
+                		else if(result == 1) { //等待队列中最高风速接受服务
                 			updateBill(btime,windTime,fee,room_id);
                 			newBill(room_id,btime,1,eSpeed);
                 		}
@@ -196,6 +206,8 @@ public class AcService {
                 	else if(num2 == 3) {	//风速，温度调节请求
                 		int wind = sc.nextInt();
                 		float tem = sc.nextFloat();
+                		if(wind < 0 || wind > 3 || ((tem < selectLT(room_id) || tem > selectUT(room_id)) && tem != 0) )
+                			continue; //判断温控范围
                         newRequest(room_id, wind, tem, nowtime);//DB-request
                 		int dResult = dispatch.newRequset(room_id, wind, tem);
                 		if(wind != 0)
@@ -206,15 +218,31 @@ public class AcService {
             			if(wind == 2) eSpeed = 0.5; else if(wind == 3) eSpeed = 1;
                 		if(dResult == 0) {//放入等待队列	
                 		}
-                		else if(dResult == 1) { //工作区未满直接工作
+                		else if(dResult == 1) { //工作区未满直接工作，且当前房间正被服务
+                			//先将当前工作中的请求结账
                 			String btime = dispatch.getBtime();
-                			int r0 = updateTandW(wind,tem,room_id);	//DB-room
+							int result = dispatch.removeWork(room_id);
+							double preeSpeed = 0.33;	//耗电速度
+							if(findWind(room_id) == 2) preeSpeed = 0.5; else if(findWind(room_id) == 3) preeSpeed = 1;
+							long windTime = dispatch.getWtime();
+							double fee = windTime*1*preeSpeed; //送风时间*1元/度*耗电标准
+							updateBill(btime,windTime,fee,room_id);
+                			//更新room中的设置，申请新请求
+							int r0 = updateTandW(wind,tem,room_id, 2);	//DB-room
+							int dt0 = updateDispatchTime(room_id); //被调度次数+1
                 			newBill(room_id,btime,1,eSpeed);	//DB-billList
                 		}
+                		else if(dResult == 2) {
+							String btime = dispatch.getBtime();
+							int r0 = updateTandW(wind,tem,room_id, 2);	//DB-room
+							int dt0 = updateDispatchTime(room_id); //被调度次数+1
+							newBill(room_id,btime,1,eSpeed);	//DB-billList
+						}
                 		else {
                 			String btime = dispatch.getBtime();
-                			int r0 = updateTandW(wind,tem,room_id);	//DB-room
-                			int r1 = updateTandW(0,26.0,dResult);	//DB-room
+                			int r0 = updateTandW(wind,tem,room_id,2);	//DB-room
+							int dt0 = updateDispatchTime(room_id); //被调度次数+1
+                			int r1 = updateTandW(0,26.0,dResult,3);	//DB-room
                 			long windTime = dispatch.getWtime();	//计算送风时长
                 			double fee = windTime*eSpeed*1;	//费用
                 			newBill(room_id,btime,1,eSpeed);	//DB-billList
@@ -222,8 +250,9 @@ public class AcService {
                 		}
                 	}
                 	else if(num2 == 4) {
-                		Room rm = findRoom(room_id);
-                		outputStream.write(("Room:"+rm.toString()).getBytes());
+                		List<Room> rm = findRoom(room_id);
+						JSONArray js = JSONArray.fromObject(rm); //List转为json
+						outputStream.write((js.toString()).getBytes());
                 	}
                 	else System.out.println("命令错误，没有此项操作");
                 }
@@ -241,7 +270,7 @@ public class AcService {
                 		int fe = sc.nextInt();
                 		int uF = updateFee(fe);
                 	}
-                	else if(num2 == 3) {
+                	else if(num2 == 3) { //查看所有房间即时状态信息
                 		List<Room> findAll = findRoomList();
 						JSONArray js = JSONArray.fromObject(findAll); //List转为json
 						outputStream.write((js.toString()).getBytes());
@@ -303,13 +332,31 @@ public class AcService {
 				double eSpeed = 0.33;
 				if(rs[0].getWind() == 2) eSpeed = 0.5;
 				else if(rs[0].getWind() == 3) eSpeed = 1;
-				updateTandW(rs[0].getWind(),rs[0].getTemperature(),rs[0].getRoomId());	//DB-room
-				updateTandW(0,26,rs[1].getRoomId());	//DB-room
+				updateTandW(rs[0].getWind(),rs[0].getTemperature(),rs[0].getRoomId(),2);	//DB-room
+				int dt0 = updateDispatchTime(rs[0].getRoomId()); //被调度次数+1
+				updateTandW(0,26,rs[1].getRoomId(),3);	//DB-room
 				newBill(rs[0].getRoomId(),rs[0].getBeginTime(),1,eSpeed);
 				long windTime = dispatch.getWtime();
 				double fee = windTime*eSpeed*1;
 				updateBill(rs[0].getBeginTime(),windTime,fee,rs[1].getRoomId());
 			}
+
+			List<Integer> roomNum = selectRoomNum();
+			for(Integer i : roomNum) {
+				int p = pause(i); //判断是否要暂停，state=3
+				int rt = restart(i); //判断是否重新启动，state=2
+			}
 	    }
+	}
+
+	public class NotWorking extends TimerTask { //非工作状态
+		@Override
+		public void run() {
+			List<Integer> roomNum = selectRoomNum();
+			for(Integer i : roomNum) {
+				int nk1 = updateNotWorking1(i); //当前温度>初始温度
+				int nk2 = updateNotWorking2(i); //当前温度<初始温度
+			}
+		}
 	}
 }
