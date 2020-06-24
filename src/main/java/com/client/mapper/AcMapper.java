@@ -15,9 +15,9 @@ import com.client.entity.Room;
 @Mapper
 public interface AcMapper {
 
-	@Update("update room set pattern=(#{pattern}),upperTem=(#{upperTem}),lowerTem=(#{lowerTem})")
+	@Update("update room set pattern=(#{pattern}),upperTem=(#{upperTem}),lowerTem=(#{lowerTem}),fee=(#{fee})")
 	int updateMode(@Param("pattern") Integer mode, @Param("upperTem")
-			Float upperTem, @Param("lowerTem") Float lowerTemroomNum);
+			Float upperTem, @Param("lowerTem") Float lowerTemroomNum, @Param("fee") Integer fee);
 
 	@Update("update room set fee=(#{fee})")
 	int updateFee(@Param("fee") Integer fee);
@@ -58,7 +58,7 @@ public interface AcMapper {
 	@Select("select * from room")
 	List<Room> findRoomList();
 
-	@Select("select * from room where roomNum = (#{roomNum})")
+	@Select("select roomNum,pattern,temperature,windSpeed from room where roomNum = (#{roomNum})")
 	List<Room> findRoom(@Param("roomNum") Integer roomNum);
 
 	@Select("select upperTem from room where roomNum = (#{roomNum})")

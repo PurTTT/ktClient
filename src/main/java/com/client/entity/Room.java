@@ -5,7 +5,7 @@ public class Room {
 	 private Integer pattern; // 0 default,1 cold,2 hot
 	 private Float temperature;	//当前温度
 	 private Float targetTemperature; //目标温度
-	 private Integer windSpeed; //0low,1mid,2high
+	 private Integer windSpeed; //1low,2mid,3high
 	 private Integer fee; //计费标准
 	 private Float upperTem;
 	 private Float lowerTem;

@@ -31,8 +31,8 @@ public class AcService {
 	int selectState(Integer roomNum) {
 		return mapper.selectState(roomNum);
 	}
-	int updateMode(Integer pattern,Float upperTem, Float lowerTemroomNum) {//更新模式
-		return mapper.updateMode(pattern, upperTem, lowerTemroomNum);
+	int updateMode(Integer pattern,Float upperTem, Float lowerTemroomNum, Integer fee) {//更新模式
+		return mapper.updateMode(pattern, upperTem, lowerTemroomNum, fee);
 	}
 	int updateFee(Integer fee) {//更新费率
 		return mapper.updateFee(fee);
@@ -184,7 +184,7 @@ public class AcService {
                 	int num2 = sc.nextInt();
                 	int room_id = sc.nextInt();
                 	if(num2 == 1) {		//房间空调开机
-                		changeState(2,room_id);	//DB-room
+                		changeState(3,room_id);	//DB-room，未送风时，空调为暂停状态
 						addOpenTime(room_id); //房间空调开关机次数+1
                 	}
                 	else if(num2 == 2) {	//房间空调关机
@@ -208,12 +208,16 @@ public class AcService {
                 		float tem = sc.nextFloat();
                 		if(wind < 0 || wind > 3 || ((tem < selectLT(room_id) || tem > selectUT(room_id)) && tem != 0) )
                 			continue; //判断温控范围
+						if(wind != 0) //调风请求数+1
+							addWR(room_id);
+						else //缺省风速为中风
+							wind = 2;
+						if(tem != 0) //调温请求数+1
+							addTR(room_id);
+						else //缺省温度为26度
+							tem = 26;
                         newRequest(room_id, wind, tem, nowtime);//DB-request
                 		int dResult = dispatch.newRequset(room_id, wind, tem);
-                		if(wind != 0)
-                			addWR(room_id);
-                		if(tem != 0)
-                			addTR(room_id);
             			double eSpeed = 0.33;	//耗电速度
             			if(wind == 2) eSpeed = 0.5; else if(wind == 3) eSpeed = 1;
                 		if(dResult == 0) {//放入等待队列	
@@ -249,7 +253,7 @@ public class AcService {
                 			updateBill(btime,windTime,fee,dResult);	//DB-billList
                 		}
                 	}
-                	else if(num2 == 4) {
+                	else if(num2 == 4) { //实时监测温度
                 		List<Room> rm = findRoom(room_id);
 						JSONArray js = JSONArray.fromObject(rm); //List转为json
 						outputStream.write((js.toString()).getBytes());
@@ -264,13 +268,10 @@ public class AcService {
                 		int mod = sc.nextInt();	//0制冷 1制热
                 		float upper = sc.nextFloat();
                 		float lower = sc.nextFloat();
-                		int uM = updateMode(mod,upper,lower);
+						int fe = sc.nextInt();
+                		int uM = updateMode(mod,upper,lower,fe);
                 	}
-                	else if(num2 == 2) {	//费率调节
-                		int fe = sc.nextInt();
-                		int uF = updateFee(fe);
-                	}
-                	else if(num2 == 3) { //查看所有房间即时状态信息
+                	else if(num2 == 2) { //查看所有房间即时状态信息
                 		List<Room> findAll = findRoomList();
 						JSONArray js = JSONArray.fromObject(findAll); //List转为json
 						outputStream.write((js.toString()).getBytes());
