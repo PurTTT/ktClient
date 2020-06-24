@@ -54,7 +54,7 @@ public class AcService {
 	int updateNotWorking2(Integer roomNum) {return mapper.updateNotWorking2(roomNum);}
 	int pause(Integer roomNum) {return mapper.pause(roomNum);}
 	int restart(Integer roomNum) {return mapper.restart(roomNum);}
-	List<Room> findRoom(Integer roomNum){//显示用户信息
+	List<UserCheck> findRoom(Integer roomNum){//显示用户信息
 		return mapper.findRoom(roomNum);
 	}
 	int updateTandW(Integer windSpeed,double tem,Integer roomNum, Integer state) {
@@ -254,7 +254,7 @@ public class AcService {
                 		}
                 	}
                 	else if(num2 == 4) { //实时监测温度
-                		List<Room> rm = findRoom(room_id);
+                		List<UserCheck> rm = findRoom(room_id);
 						JSONArray js = JSONArray.fromObject(rm); //List转为json
 						outputStream.write((js.toString()).getBytes());
                 	}

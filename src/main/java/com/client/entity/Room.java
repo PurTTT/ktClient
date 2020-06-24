@@ -1,4 +1,7 @@
 package com.client.entity;
+/*
+	Room为管理员可实时监测的表
+ */
 
 public class Room {
 	 private Integer roomNum;
@@ -9,6 +12,12 @@ public class Room {
 	 private Integer fee; //计费标准
 	 private Float upperTem;
 	 private Float lowerTem;
+	 private Integer state;
+	 private Integer openTime;
+	 private Integer windRequest;
+	 private Integer tempRequest;
+	 private Integer dispatchTime;
+	 private Float oriTemperature;
 	 public Integer getPattern(){
 	        return pattern;
 	    }
@@ -57,8 +66,20 @@ public class Room {
 	    public void setLowerTem(float lowerTem){
 	        this.lowerTem = lowerTem;
 	    }
-	    public String toString() {
-	    	return roomNum+" "+pattern+" "+temperature+" "+targetTemperature
-	    +" "+windSpeed+" "+fee+" "+upperTem+" "+lowerTem;
-	    }
+	    public Integer getState() {return state; }
+	    public void setState(int state) { this.state = state; }
+		public Integer getOpenTime() {return openTime; }
+		public void setOpenTime(int openTime) { this.openTime = openTime; }
+	public Integer getWindRequest() {return windRequest; }
+	public void setWindRequest(int windRequest) { this.windRequest = windRequest; }
+	public Integer getTempRequest() {return tempRequest; }
+	public void setTemperature(int tempRequest) { this.tempRequest = tempRequest; }
+	public Integer getDispatchTime() {return dispatchTime; }
+	public void setDispatchTime(int dispatchTime) { this.dispatchTime = dispatchTime; }
+	public Float getOriTemperature() {return oriTemperature; }
+	public void setOriTemperature(Float oriTemperature) { this.oriTemperature = oriTemperature; }
+//	    public String toString() {
+//	    	return roomNum+" "+pattern+" "+temperature+" "+targetTemperature
+//	    +" "+windSpeed+" "+fee+" "+upperTem+" "+lowerTem;
+//	    }
 }

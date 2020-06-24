@@ -1,6 +1,8 @@
 package com.client.entity;
 
-/*账单*/
+/*
+	Bill为前台可以查看的账单
+*/
 public class Bill {
 	Integer roomId;	//房间ID
 	Integer totalFee;	//总费用
@@ -30,7 +32,7 @@ public class Bill {
 	public void setOuttime(String outTime) {
 		this.outTime = outTime;
 	}
-	public String toString() {
-		return roomId+" "+inTime+" "+outTime+" "+totalFee; 
-	}
+//	public String toString() {
+//		return roomId+" "+inTime+" "+outTime+" "+totalFee;
+//	}
 }

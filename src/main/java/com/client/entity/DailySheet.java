@@ -1,10 +1,15 @@
 package com.client.entity;
 
+/*
+    DailySheet为经理查看的报表
+ */
+
 public class DailySheet {
     Integer roomId;
     Integer openTime;
     Integer totalTime;
-    float totalFee;
+    Float totalFee;
+    Integer dispatchTime;
     Integer BillNum;
     Integer tempRequest;
     Integer windRequest;
@@ -27,12 +32,16 @@ public class DailySheet {
     public void setTotalTime(Integer totalTime) {
         this.totalTime = totalTime;
     }
-    public float getTotalFee() {
+    public Float getTotalFee() {
         return totalFee;
     }
-    public void setTotalFee(float totalFee) {
+    public void setTotalFee(Float totalFee) {
         this.totalFee = totalFee;
     }
+    public Integer getDispatchTime() {
+        return dispatchTime;
+    }
+    public void setDispatchTime(Integer dispatchTime) { this.dispatchTime = dispatchTime; }
     public Integer getBillNum() {
         return BillNum;
     }

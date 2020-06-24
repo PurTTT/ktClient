@@ -1,7 +1,7 @@
 package com.client.mapper;
 import java.util.List;
 
-import com.client.entity.DailySheet;
+import com.client.entity.*;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -9,9 +9,6 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
-import com.client.entity.Bill;
-import com.client.entity.BillList;
-import com.client.entity.Room;
 @Mapper
 public interface AcMapper {
 
@@ -59,7 +56,7 @@ public interface AcMapper {
 	List<Room> findRoomList();
 
 	@Select("select roomNum,pattern,temperature,windSpeed from room where roomNum = (#{roomNum})")
-	List<Room> findRoom(@Param("roomNum") Integer roomNum);
+	List<UserCheck> findRoom(@Param("roomNum") Integer roomNum);
 
 	@Select("select upperTem from room where roomNum = (#{roomNum})")
 	float selectUT(@Param("roomNum") Integer roomNum);

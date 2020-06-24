@@ -1,20 +1,24 @@
 package com.client.entity;
 
+/*
+	Request为请求
+ */
+
 public class Request {
-	int roomId;
-	int wind;
+	Integer roomId;
+	Integer wind;
 	float temperature;
 	String beginTime; //开始时间
-	public int getRoomId() {
+	public Integer getRoomId() {
 		return roomId;
 	}
-	public void setRoomId(int roomId) {
+	public void setRoomId(Integer roomId) {
 		this.roomId = roomId;
 	}
-	public int getWind() {
+	public Integer getWind() {
 		return wind;
 	}
-	public void setWind(int wind) {
+	public void setWind(Integer wind) {
 		this.wind = wind;
 	}
 	public String getBeginTime() {

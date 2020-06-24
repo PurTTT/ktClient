@@ -1,14 +1,16 @@
 package com.client.entity;
 
-/*详单*/
+/*
+	BillList为前台可以查看的详单
+*/
 public class BillList {
 	Integer roomId;
 	String beginTime;	//开始送风时间
 	String endTime;	//结束送风时间
 	Integer windTime;	//送风时长
 	Integer price;	//费率
-	double eSpeed; //耗电速度 低0.33  中0.5 高1
-	double fee;	//费用
+	Float eSpeed; //耗电速度 低0.33  中0.5 高1
+	Float fee;	//费用
 	public Integer getRoomId() {
 		return roomId;
 	}
@@ -39,20 +41,20 @@ public class BillList {
 	public void setPrice(Integer price) {
 		this.price = price;
 	}
-	public double geteSpeed() {
+	public Float geteSpeed() {
 		return eSpeed;
 	}
-	public void seteSpeed(double eSpeed) {
+	public void seteSpeed(Float eSpeed) {
 		this.eSpeed = eSpeed;
 	}
-	public double getFee() {
+	public Float getFee() {
 		return fee;
 	}
-	public void setFee(double fee) {
+	public void setFee(Float fee) {
 		this.fee = fee;
 	}
-    public String toString() {
-    	return roomId+" "+beginTime+" "+endTime+" "+windTime
-    +" "+price+" "+eSpeed+" "+fee;
-    }
+//    public String toString() {
+//    	return roomId+" "+beginTime+" "+endTime+" "+windTime
+//    +" "+price+" "+eSpeed+" "+fee;
+//    }
 }
