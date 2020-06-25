@@ -234,32 +234,35 @@ public class AcService {
                 		else if(dResult == 1) { //工作区未满直接工作，且当前房间正被服务
                 			//先将当前工作中的请求结账
                 			String btime = dispatch.getBtime();
-							int result = dispatch.removeWork(room_id);
+							dispatch.removeWork(room_id);
 							double preeSpeed = 0.33;	//耗电速度
 							if(findWind(room_id) == 2) preeSpeed = 0.5; else if(findWind(room_id) == 3) preeSpeed = 1;
 							long windTime = dispatch.getWtime();
 							double fee = windTime*1*preeSpeed/60.00; //送风时间*1元/度*耗电标准
 							updateBill(btime,windTime,fee,room_id);
                 			//更新room中的设置，申请新请求
-							int r0 = updateTandW(wind,tem,room_id, 2);	//DB-room
-							int dt0 = updateDispatchTime(room_id); //被调度次数+1
+							updateTandW(wind,tem,room_id, 2);	//DB-room
+							updateDispatchTime(room_id); //被调度次数+1
+							System.out.println(room_id + "替换自己");
                 			newBill(room_id,btime,1,eSpeed);	//DB-billList
                 		}
                 		else if(dResult == 2) {
 							String btime = dispatch.getBtime();
-							int r0 = updateTandW(wind,tem,room_id, 2);	//DB-room
-							int dt0 = updateDispatchTime(room_id); //被调度次数+1
+							updateTandW(wind,tem,room_id, 2);	//DB-room
+							updateDispatchTime(room_id); //被调度次数+1
+							System.out.println(room_id + "获得服务");
 							newBill(room_id,btime,1,eSpeed);	//DB-billList
 						}
                 		else {
                 			String btime = dispatch.getBtime();
-                			int r0 = updateTandW(wind,tem,room_id,2);	//DB-room
-							int dt0 = updateDispatchTime(room_id); //被调度次数+1
-                			int r1 = updateTandW(0,26.0,dResult,3);	//DB-room
+                			updateTandW(wind,tem,room_id,2);	//DB-room
+							updateDispatchTime(room_id); //被调度次数+1
+                			updateTandW(0,26.0,dResult,3);	//DB-room
                 			long windTime = dispatch.getWtime();	//计算送风时长
                 			double fee = windTime*eSpeed*1/60.00;	//费用
                 			newBill(room_id,btime,1,eSpeed);	//DB-billList
                 			updateBill(btime,windTime,fee,dResult);	//DB-billList
+							System.out.println(room_id + "替换" + dResult);
                 		}
                 	}
                 	else if(num2 == 4) { //实时监测温度
@@ -278,7 +281,7 @@ public class AcService {
                 		float upper = sc.nextFloat();
                 		float lower = sc.nextFloat();
 						int fe = sc.nextInt();
-                		int uM = updateMode(mod,upper,lower,fe);
+                		updateMode(mod,upper,lower,fe);
                 	}
                 	else if(num2 == 2) { //查看所有房间即时状态信息
                 		List<Room> findAll = findRoomList();
@@ -365,11 +368,11 @@ public class AcService {
 		public void run() {
 			List<Integer> roomNum = selectRoomNum();
 			for(Integer i : roomNum) {
-				updateNotWorking1(i); //当前温度>初始温度
-				updateNotWorking2(i); //当前温度<初始温度
 				updateNotWorking3(i); //差距小于0.5度的情况
 				updateNotWorking4(i);
-				System.out.println("非工作状态回温更新");
+				updateNotWorking1(i); //当前温度>初始温度
+				updateNotWorking2(i); //当前温度<初始温度
+				System.out.println(i + "非工作状态回温更新");
 			}
 		}
 	}

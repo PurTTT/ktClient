@@ -39,7 +39,7 @@ public interface AcMapper {
 	@Update("update room set dispatchTime = dispatchTime + 1 where roomNum = (#{roomNum})")
 	int updateDispatchTime(@Param("roomNum") Integer roomNum);
 
-	@Update("update room set windSpeed = 0, tagetTemperature = 26 where roomNum = (#{roomNum})")
+	@Update("update room set windSpeed = 0, targetTemperature = 26 where roomNum = (#{roomNum})")
 	int updateRoomWhenClose(@Param("roomNum") Integer roomNum);
 
 
