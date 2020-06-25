@@ -47,6 +47,12 @@
 			<artifactId>json-lib</artifactId>
 			<version>0.9</version>
 		</dependency>
+
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>1.2.58</version>
+		</dependency>
 	</dependencies>
 
 	<build>

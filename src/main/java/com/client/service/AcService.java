@@ -17,10 +17,14 @@ import java.util.TimerTask;
 import com.client.entity.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import net.sf.json.JSONArray;
+//import net.sf.json.JSONArray;
 
 import com.client.mapper.AcMapper;
 import com.client.util.Dispatch;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 
 @Service
 public class AcService {
@@ -167,14 +171,14 @@ public class AcService {
                 		updateTotalFee(total,room_id);
                 		List<Bill> sb = selectBill(room_id, nowtime);
                 		List<BillList> sb1 = selectBillList(room_id, selectInTime(room_id, nowtime), nowtime);
-						JSONArray js = JSONArray.fromObject(sb); //List转为json
-						JSONArray js1 = JSONArray.fromObject(sb1); //List转为json
-						outputStream.write(("账单：" + js.toString() + "\n详单：" + js1.toString()).getBytes());
+						String str = JSON.toJSONString(sb, SerializerFeature.PrettyFormat);
+						String str1 = JSON.toJSONString(sb1, SerializerFeature.PrettyFormat);
+						outputStream.write(("账单：\n" + str + "\n详单：\n" + str1).getBytes());
                 	}
                 	else if(num2 == 3) {	//查询某个房间的所有账单
                 		List<Bill> sb = selectFullBill(room_id);
-						JSONArray js = JSONArray.fromObject(sb); //List转为json
-						outputStream.write((js.toString()).getBytes());
+						String str = JSON.toJSONString(sb, SerializerFeature.PrettyFormat);
+						outputStream.write(str.getBytes());
                 	}
                 	else System.out.println("命令错误，没有此项操作");
                 }
@@ -255,8 +259,8 @@ public class AcService {
                 	}
                 	else if(num2 == 4) { //实时监测温度
                 		List<UserCheck> rm = findRoom(room_id);
-						JSONArray js = JSONArray.fromObject(rm); //List转为json
-						outputStream.write((js.toString()).getBytes());
+						String str = JSON.toJSONString(rm, SerializerFeature.PrettyFormat);
+						outputStream.write(str.getBytes());
                 	}
                 	else System.out.println("命令错误，没有此项操作");
                 }
@@ -273,8 +277,8 @@ public class AcService {
                 	}
                 	else if(num2 == 2) { //查看所有房间即时状态信息
                 		List<Room> findAll = findRoomList();
-						JSONArray js = JSONArray.fromObject(findAll); //List转为json
-						outputStream.write((js.toString()).getBytes());
+						String str = JSON.toJSONString(findAll, SerializerFeature.PrettyFormat);
+						outputStream.write(str.getBytes());
                 	}
                 	else System.out.println("命令错误，没有此项操作");
                 }
@@ -294,8 +298,8 @@ public class AcService {
 						sb1.insert(7, "-");
 						endTime = sb1.toString();
 						List<DailySheet> ds = checkDailySheet(beginTime, endTime);
-						JSONArray js = JSONArray.fromObject(ds);
-						outputStream.write((js.toString()).getBytes());
+						String str = JSON.toJSONString(ds, SerializerFeature.PrettyFormat);
+						outputStream.write(str.getBytes());
                 	}
                 	else System.out.println("命令错误，没有此项操作");
                 }
