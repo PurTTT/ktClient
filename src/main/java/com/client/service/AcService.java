@@ -58,7 +58,6 @@ public class AcService {
 	int updateNotWorking1(Integer roomNum) {return mapper.updateNotWorking1(roomNum);}
 	int updateNotWorking2(Integer roomNum) {return mapper.updateNotWorking2(roomNum);}
 	int updateNotWorking3(Integer roomNum) {return mapper.updateNotWorking1(roomNum);}
-	int updateNotWorking4(Integer roomNum) {return mapper.updateNotWorking2(roomNum);}
 	int pause(Integer roomNum) {return mapper.pause(roomNum);}
 	int restart(Integer roomNum) {return mapper.restart(roomNum);}
 	List<UserCheck> findRoom(Integer roomNum){//显示用户信息
@@ -112,6 +111,15 @@ public class AcService {
 	}
 	int ScheduleUpdate5() {
 		return mapper.ScheduleUpdate5();
+	}
+	int ScheduleUpdate6() {
+		return mapper.ScheduleUpdate6();
+	}
+	int ScheduleUpdate7() {
+		return mapper.ScheduleUpdate7();
+	}
+	int ScheduleUpdate8() {
+		return mapper.ScheduleUpdate8();
 	}
 	double totalFee(Integer roomId) {
 		return mapper.totalFee(roomId);
@@ -332,6 +340,7 @@ public class AcService {
 		@Override
 	    public void run() {
 			//System.out.println("20s");
+			ScheduleUpdate6();	ScheduleUpdate7(); ScheduleUpdate8(); //先判断差值很小的情况
 			ScheduleUpdate();	ScheduleUpdate1(); ScheduleUpdate2();
 			ScheduleUpdate3();   ScheduleUpdate4();  ScheduleUpdate5();//周期更新数据库
 			Request[] rs = new Request[2];
@@ -369,7 +378,6 @@ public class AcService {
 			List<Integer> roomNum = selectRoomNum();
 			for(Integer i : roomNum) {
 				updateNotWorking3(i); //差距小于0.5度的情况
-				updateNotWorking4(i);
 				updateNotWorking1(i); //当前温度>初始温度
 				updateNotWorking2(i); //当前温度<初始温度
 				System.out.println(i + "非工作状态回温更新");

@@ -68,28 +68,40 @@ public interface AcMapper {
 	float selectLT(@Param("roomNum") Integer roomNum);
 
 	@Update("update room set temperature = temperature + 0.2 where windSpeed = 1 "
-			+ "and targetTemperature > temperature and state = 2")
+			+ "and targetTemperature - temperature > 0.2 and state = 2")
 	int ScheduleUpdate();
 
 	@Update("update room set temperature = temperature + 0.25 where windSpeed = 2 "
-			+ "and targetTemperature > temperature and state = 2")
+			+ "and targetTemperature - temperature > 0.25 and state = 2")
 	int ScheduleUpdate1();
 
 	@Update("update room set temperature = temperature + 0.3 where windSpeed = 3 "
-			+ "and targetTemperature > temperature and state = 2")
+			+ "and targetTemperature - temperature > 0.3 and state = 2")
 	int ScheduleUpdate2();
 
 	@Update("update room set temperature = temperature - 0.2 where windSpeed = 1 "
-			+ "and targetTemperature < temperature and state = 2")
+			+ "and temperature - targetTemperature > 0.2 and state = 2")
 	int ScheduleUpdate3();
 
 	@Update("update room set temperature = temperature - 0.25 where windSpeed = 2 "
-			+ "and targetTemperature < temperature and state = 2")
+			+ "and temperature - targetTemperature > 0.25 and state = 2")
 	int ScheduleUpdate4();
 
 	@Update("update room set temperature = temperature - 0.3 where windSpeed = 3 "
-			+ "and targetTemperature < temperature and state = 2")
+			+ "and temperature - targetTemperature > 0.3 and state = 2")
 	int ScheduleUpdate5();
+
+	@Update("update room set temperature = targetTemperature where windSpeed = 1 "
+			+ "and ABS(targetTemperature - temperature) <= 0.2 and state = 2")
+	int ScheduleUpdate6();
+
+	@Update("update room set temperature = targetTemperature where windSpeed = 2 "
+			+ "and ABS(targetTemperature - temperature) <= 0.25 and state = 2")
+	int ScheduleUpdate7();
+
+	@Update("update room set temperature = targetTemperature where windSpeed = 3 "
+			+ "and ABS(targetTemperature - temperature) <= 0.3 and state = 2")
+	int ScheduleUpdate8();
 
 	@Update("update room set temperature = temperature - 0.5 where roomNum = (#{roomNum}) "
 			+ "and temperature - oriTemperature >= 0.5 and state != 2")
@@ -97,12 +109,8 @@ public interface AcMapper {
 	@Update("update room set temperature = temperature + 0.5 where roomNum = (#{roomNum}) "
 			+ "and oriTemperature - temperature >= 0.5 and state != 2")
 	int updateNotWorking2(@Param("roomNum") Integer roomNum);
-	@Update("update room set temperature = oriTemperature where roomNum = (#{roomNum}) "
-			+ "and temperature - oriTemperature < 0.5 and state != 2")
+	@Update("update room set temperature = oriTemperature where state != 2 and ABS(temperature - oriTemperature) < 0.5")
 	int updateNotWorking3(@Param("roomNum") Integer roomNum);
-	@Update("update room set temperature = oriTemperature where roomNum = (#{roomNum}) "
-			+ "and oriTemperature - temperature < 0.5 and state != 2")
-	int updateNotWorking4(@Param("roomNum") Integer roomNum);
 
 	@Update("update room set state = 3 where roomNum = (#{roomNum})"
 			+ " and ((pattern = 0 and temperature <= targetTemperature) or (pattern = 1 and temperature >= targetTemperature))")
