@@ -46,7 +46,7 @@ public interface AcMapper {
 	@Select("select state from room where roomNum = (#{roomNum})")
 	int selectState(@Param("roomNum") Integer roomNum);
 
-	@Select("select patter from room where roomNum = (#{roomNum})")
+	@Select("select pattern from room where roomNum = (#{roomNum})")
 	int selectPattern(@Param("roomNum") Integer roomNum);
 
 	@Select("select windSpeed from room where roomNum = (#{roomNum})")
@@ -148,7 +148,7 @@ public interface AcMapper {
 	List<Bill> selectBill(@Param("roomId") Integer roomId, @Param("outTime") String outTime);
 
 	@Select("select sum(fee) From BillList where roomId = (#{roomId}) and beginTime >= (#{inTime})")
-	double totalFee(@Param("roomId") Integer roomId, @Param("inTime") String inTime);
+	Double totalFee(@Param("roomId") Integer roomId, @Param("inTime") String inTime);
 
 	@Select("SELECT roomId, MAX(openTime) as openTime, SUM(windTime) as totalTime, SUM(fee) as totalFee, MAX(dispatchTime) as dispatchTime, COUNT(roomId) as BillNum, MAX(tempRequest) as tempRequest, MAX(windRequest) as windRequest "
 			+ "FROM BillList NATURAL JOIN roomList "
@@ -157,7 +157,7 @@ public interface AcMapper {
 	List<DailySheet> checkDailySheet(@Param("beginTime") String beginTime, @Param("endTime") String endTime);
 
 	@Select("select SUM(windTime) from BillList where roomId = (#{roomId}) and beginTime >= (#{inTime}) and endTime is null")
-	int selectWindTimeSum(@Param("roomId") Integer roomId, @Param("inTime") String inTime);
+	Integer selectWindTimeSum(@Param("roomId") Integer roomId, @Param("inTime") String inTime);
 
 	/*DB-totalBill*/
 	@Insert("insert into Bill(roomId) value(#{roomId})")

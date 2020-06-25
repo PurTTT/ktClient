@@ -51,7 +51,7 @@ public class AcService {
 	int selectPattern(Integer roomNum) {
 		return mapper.selectPattern(roomNum);
 	}
-	int selectWindTimeSum(Integer roomId, String inTime) { return mapper.selectWindTimeSum(roomId, inTime);}
+	Integer selectWindTimeSum(Integer roomId, String inTime) { return mapper.selectWindTimeSum(roomId, inTime);}
 	List<Integer> selectRoomNum() {return mapper.selectRoomNum();}
 	List<Integer> selectWorkingRoom(){return mapper.selectWorkingRoom();}
 	List<Room> findRoomList(){//显示所有用户信息
@@ -127,7 +127,7 @@ public class AcService {
 	int ScheduleUpdate8() {
 		return mapper.ScheduleUpdate8();
 	}
-	double totalFee(Integer roomId, String inTime) {
+	Double totalFee(Integer roomId, String inTime) {
 		return mapper.totalFee(roomId, inTime);
 	}
 	/*DB-bill*/
@@ -281,23 +281,39 @@ public class AcService {
                 		}
                 	}
                 	else if(num2 == 4) { //实时监测温度
-                		String uBeginTime = selectBeginTime(room_id);
-                		long nowTime = System.currentTimeMillis();
-                		long windTime = nowTime - dispatch.dateToStamp(uBeginTime);
-                		int wind = findWind(room_id);
+                		String uBeginTime = selectBeginTime(room_id); //获得正在运行任务的开始时间
+                		long nowTime = System.currentTimeMillis(); //获得当前时间（毫秒）
+						long windTime = 0;
+						System.out.println(uBeginTime); //debug用
+                		if (uBeginTime != null) { //存在正在运行的任务
+							windTime = (nowTime - dispatch.dateToStamp(uBeginTime)) / 1000; //得部分送风时长（秒）
+						}
+                		System.out.println(windTime); //debug用
+                		int wind = findWind(room_id); //风速
 						double eSpeed = 0.33;	//耗电速度
 						if(wind == 2) eSpeed = 0.5; else if(wind == 3) eSpeed = 1;
 						double fee = windTime*eSpeed*1/60.00;	//费用
 
-						windTime += selectWindTimeSum(room_id, selectInTimeNotLeave(room_id));
-						fee += totalFee(room_id, selectInTimeNotLeave(room_id));
+						Integer wts = selectWindTimeSum(room_id, selectInTimeNotLeave(room_id)); //得已完成任务送风时长之和
+						if(wts != null) //有完成过的任务
+							windTime += wts;
+						else //没有
+							windTime += 0;
+						Double tf = totalFee(room_id, selectInTimeNotLeave(room_id)); //得已完成任务总费用
+						if(tf != null) //有
+							fee += tf;
+						else //无
+							fee += 0;
 
-						String usercheck = "[{\"roomNum\":" + room_id + ",\"pattern\":" + selectPattern(room_id) +
-								",\"temperature\":" + selectNowTemp(room_id) + ",\"windSpeed\":" + wind +
-								",\"windTime\":" + windTime + "\"totalFee\":" + fee + "}]";
+						System.out.println(windTime + "," + fee); //debug用
 
-//                		List<UserCheck> rm = findRoom(room_id);
-						JSONObject object = JSONObject.parseObject(usercheck);
+						//Json字符串，有转义（double保留两位小数问题）
+						String usercheck = "{\"roomNum\":" + Integer.toString(room_id) + ",\"pattern\":" + Integer.toString(selectPattern(room_id)) +
+								",\"temperature\":" + Float.toString(selectNowTemp(room_id)) + ",\"windSpeed\":" + Integer.toString(wind) +
+								",\"windTime\":" + Long.toString(windTime) + ",\"totalFee\":" + Double.toString(fee) + "}";
+
+						System.out.println(usercheck); //debug用
+						JSONObject object = JSONObject.parseObject(usercheck); //输出
 						String str = JSON.toJSONString(object, SerializerFeature.PrettyFormat, SerializerFeature.WriteNullNumberAsZero);
 						outputStream.write(str.getBytes());
                 	}
