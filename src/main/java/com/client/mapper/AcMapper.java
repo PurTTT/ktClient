@@ -12,12 +12,12 @@ import org.apache.ibatis.annotations.Update;
 @Mapper
 public interface AcMapper {
 
-	@Update("update room set pattern=(#{pattern}),upperTem=(#{upperTem}),lowerTem=(#{lowerTem}),fee=(#{fee})")
+	@Update("update room set pattern=(#{pattern}),upperTem=(#{upperTem}),lowerTem=(#{lowerTem}),feeRate=(#{feeRate})")
 	int updateMode(@Param("pattern") Integer mode, @Param("upperTem")
-			Float upperTem, @Param("lowerTem") Float lowerTemroomNum, @Param("fee") Integer fee);
+			Float upperTem, @Param("lowerTem") Float lowerTemroomNum, @Param("feeRate") Integer fee);
 
-	@Update("update room set fee=(#{fee})")
-	int updateFee(@Param("fee") Integer fee);
+	@Update("update room set feeRate=(#{feeRate})")
+	int updateFee(@Param("feeRate") Integer fee);
 
 	@Update("update room set state=(#{state}) where roomNum = (#{roomNum})")
 	int changeState(@Param("state") Integer state, @Param("roomNum") Integer roomNum);
@@ -46,6 +46,9 @@ public interface AcMapper {
 	@Select("select state from room where roomNum = (#{roomNum})")
 	int selectState(@Param("roomNum") Integer roomNum);
 
+	@Select("select patter from room where roomNum = (#{roomNum})")
+	int selectPattern(@Param("roomNum") Integer roomNum);
+
 	@Select("select windSpeed from room where roomNum = (#{roomNum})")
 	int findWind(@Param("roomNum") Integer roomNum);
 
@@ -60,6 +63,9 @@ public interface AcMapper {
 
 	@Select("select roomNum,pattern,temperature,windSpeed from room where roomNum = (#{roomNum})")
 	List<UserCheck> findRoom(@Param("roomNum") Integer roomNum);
+
+	@Select("select temperature from room where roomNum = (#{roomNum})")
+	float selectNowTemp(@Param("roomNum") Integer roomNum);
 
 	@Select("select upperTem from room where roomNum = (#{roomNum})")
 	float selectUT(@Param("roomNum") Integer roomNum);
@@ -131,6 +137,9 @@ public interface AcMapper {
 	int updateBill(@Param("endTime") String endTime, @Param("windTime") long windTime,
 				   @Param("fee") double fee, @Param("roomId") Integer roomId);
 
+	@Select("select beginTime from BillList where roomId = (#{roomId}) and endTime is null")
+	String selectBeginTime(@Param("roomId") Integer roomId);
+
 	@Select("SELECT * FROM BillList WHERE roomId = (#{roomId}) and fee IS NOT NULL"
 	+ " and beginTime >= (#{inTime}) and endTime <= (#{outTime})")
 	List<BillList> selectBillList(@Param("roomId") Integer roomId, @Param("inTime") String inTime, @Param("outTime") String outTime);
@@ -138,14 +147,17 @@ public interface AcMapper {
 	@Select("select * from Bill where roomId = (#{roomId}) and outTime = (#{outTime})")
 	List<Bill> selectBill(@Param("roomId") Integer roomId, @Param("outTime") String outTime);
 
-	@Select("select sum(fee) From BillList where roomId = (#{roomId})")
-	double totalFee(@Param("roomId") Integer roomId);
+	@Select("select sum(fee) From BillList where roomId = (#{roomId}) and beginTime >= (#{inTime})")
+	double totalFee(@Param("roomId") Integer roomId, @Param("inTime") String inTime);
 
 	@Select("SELECT roomId, MAX(openTime) as openTime, SUM(windTime) as totalTime, SUM(fee) as totalFee, MAX(dispatchTime) as dispatchTime, COUNT(roomId) as BillNum, MAX(tempRequest) as tempRequest, MAX(windRequest) as windRequest "
 			+ "FROM BillList NATURAL JOIN roomList "
 			+"WHERE date_format(endTime,'%Y-%m-%d')<= (#{endTime})"
 			+ " and date_format(beginTime,'%Y-%m-%d') >= (#{beginTime}) GROUP BY roomId")
 	List<DailySheet> checkDailySheet(@Param("beginTime") String beginTime, @Param("endTime") String endTime);
+
+	@Select("select SUM(windTime) from BillList where roomId = (#{roomId}) and beginTime >= (#{inTime}) and endTime is null")
+	int selectWindTimeSum(@Param("roomId") Integer roomId, @Param("inTime") String inTime);
 
 	/*DB-totalBill*/
 	@Insert("insert into Bill(roomId) value(#{roomId})")
@@ -162,6 +174,9 @@ public interface AcMapper {
 
 	@Select("select inTime from Bill where roomId = (#{roomId}) and outTime = (#{outTime})")
 	String selectInTime(@Param("roomId") Integer roomId, @Param("outTime") String outTime);
+
+	@Select("select inTime from Bill where roomId = (#{roomId}) and outTime is null")
+	String selectInTimeNotLeave(@Param("roomId") Integer roomId);
 
 	@Select("select * from Bill where roomId = (#{roomId}) and totalFee is not null")
 	List<Bill> selectFullBill(@Param("roomId") Integer roomId);

@@ -9,7 +9,7 @@ public class Room {
 	 private Float temperature;	//当前温度
 	 private Float targetTemperature; //目标温度
 	 private Integer windSpeed; //1low,2mid,3high
-	 private Integer fee; //计费标准
+	 private Integer feeRate; //计费标准
 	 private Float upperTem;
 	 private Float lowerTem;
 	 private Integer state;
@@ -49,10 +49,10 @@ public class Room {
 	        this.targetTemperature = targetTemperature;
 	    }
 	    public Integer getFee(){
-	        return fee;
+	        return feeRate;
 	    }
 	    public void setFee(Integer fee){
-	        this.fee = fee;
+	        this.feeRate = fee;
 	    }
 	    public Float getUpperTem(){
 	        return upperTem;

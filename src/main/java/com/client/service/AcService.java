@@ -48,11 +48,16 @@ public class AcService {
 	int findWind(Integer roomNum) {
 		return mapper.findWind(roomNum);
 	}
+	int selectPattern(Integer roomNum) {
+		return mapper.selectPattern(roomNum);
+	}
+	int selectWindTimeSum(Integer roomId, String inTime) { return mapper.selectWindTimeSum(roomId, inTime);}
 	List<Integer> selectRoomNum() {return mapper.selectRoomNum();}
 	List<Integer> selectWorkingRoom(){return mapper.selectWorkingRoom();}
 	List<Room> findRoomList(){//显示所有用户信息
 		return mapper.findRoomList();
 	}
+	float selectNowTemp(Integer roomNum) {return mapper.selectNowTemp(roomNum);}
 	float selectUT(Integer roomNum) {return mapper.selectUT(roomNum);}
 	float selectLT(Integer roomNum) {return mapper.selectLT(roomNum);}
 	int updateNotWorking1(Integer roomNum) {return mapper.updateNotWorking1(roomNum);}
@@ -85,6 +90,7 @@ public class AcService {
 	int updateBill(String endTime,long windTime,double fee,int dResult) {
 		return mapper.updateBill(endTime, windTime, fee, dResult);
 	}
+	String selectBeginTime(Integer roomId) { return mapper.selectBeginTime(roomId); }
 	List<BillList> selectBillList(Integer roomId, String inTime, String outTime) {
 		return mapper.selectBillList(roomId, inTime, outTime);
 	}
@@ -121,8 +127,8 @@ public class AcService {
 	int ScheduleUpdate8() {
 		return mapper.ScheduleUpdate8();
 	}
-	double totalFee(Integer roomId) {
-		return mapper.totalFee(roomId);
+	double totalFee(Integer roomId, String inTime) {
+		return mapper.totalFee(roomId, inTime);
 	}
 	/*DB-bill*/
 	int updateIntime(String inTime,int roomId) {
@@ -137,6 +143,7 @@ public class AcService {
 	String selectInTime(Integer roomId, String outTime) {
 		return mapper.selectInTime(roomId, outTime);
 	}
+	String selectInTimeNotLeave(Integer roomId) {return mapper.selectInTimeNotLeave(roomId);}
 	List<Bill> selectFullBill(Integer roomId) {
 		return mapper.selectFullBill(roomId);
 	}
@@ -178,17 +185,17 @@ public class AcService {
                 	else if(num2 == 2) {	//用户退房
                 		changeState(0,room_id);
                 		updateOuttime(nowtime,room_id);
-                		double total = totalFee(room_id);
+                		double total = totalFee(room_id, selectInTime(room_id, nowtime));
                 		updateTotalFee(total,room_id);
                 		List<Bill> sb = selectBill(room_id, nowtime);
                 		List<BillList> sb1 = selectBillList(room_id, selectInTime(room_id, nowtime), nowtime);
-						String str = JSON.toJSONString(sb, SerializerFeature.PrettyFormat);
-						String str1 = JSON.toJSONString(sb1, SerializerFeature.PrettyFormat);
+						String str = JSON.toJSONString(sb, SerializerFeature.PrettyFormat, SerializerFeature.WriteNullNumberAsZero);
+						String str1 = JSON.toJSONString(sb1, SerializerFeature.PrettyFormat, SerializerFeature.WriteNullNumberAsZero);
 						outputStream.write(("账单：\n" + str + "\n详单：\n" + str1).getBytes());
                 	}
                 	else if(num2 == 3) {	//查询某个房间的所有账单
                 		List<Bill> sb = selectFullBill(room_id);
-						String str = JSON.toJSONString(sb, SerializerFeature.PrettyFormat);
+						String str = JSON.toJSONString(sb, SerializerFeature.PrettyFormat, SerializerFeature.WriteNullNumberAsZero);
 						outputStream.write(str.getBytes());
                 	}
                 	else System.out.println("命令错误，没有此项操作");
@@ -274,8 +281,24 @@ public class AcService {
                 		}
                 	}
                 	else if(num2 == 4) { //实时监测温度
-                		List<UserCheck> rm = findRoom(room_id);
-						String str = JSON.toJSONString(rm, SerializerFeature.PrettyFormat);
+                		String uBeginTime = selectBeginTime(room_id);
+                		long nowTime = System.currentTimeMillis();
+                		long windTime = nowTime - dispatch.dateToStamp(uBeginTime);
+                		int wind = findWind(room_id);
+						double eSpeed = 0.33;	//耗电速度
+						if(wind == 2) eSpeed = 0.5; else if(wind == 3) eSpeed = 1;
+						double fee = windTime*eSpeed*1/60.00;	//费用
+
+						windTime += selectWindTimeSum(room_id, selectInTimeNotLeave(room_id));
+						fee += totalFee(room_id, selectInTimeNotLeave(room_id));
+
+						String usercheck = "[{\"roomNum\":" + room_id + ",\"pattern\":" + selectPattern(room_id) +
+								",\"temperature\":" + selectNowTemp(room_id) + ",\"windSpeed\":" + wind +
+								",\"windTime\":" + windTime + "\"totalFee\":" + fee + "}]";
+
+//                		List<UserCheck> rm = findRoom(room_id);
+						JSONObject object = JSONObject.parseObject(usercheck);
+						String str = JSON.toJSONString(object, SerializerFeature.PrettyFormat, SerializerFeature.WriteNullNumberAsZero);
 						outputStream.write(str.getBytes());
                 	}
                 	else System.out.println("命令错误，没有此项操作");
@@ -293,7 +316,7 @@ public class AcService {
                 	}
                 	else if(num2 == 2) { //查看所有房间即时状态信息
                 		List<Room> findAll = findRoomList();
-						String str = JSON.toJSONString(findAll, SerializerFeature.PrettyFormat);
+						String str = JSON.toJSONString(findAll, SerializerFeature.PrettyFormat, SerializerFeature.WriteNullNumberAsZero);
 						outputStream.write(str.getBytes());
                 	}
                 	else System.out.println("命令错误，没有此项操作");
@@ -314,7 +337,7 @@ public class AcService {
 						sb1.insert(7, "-");
 						endTime = sb1.toString();
 						List<DailySheet> ds = checkDailySheet(beginTime, endTime);
-						String str = JSON.toJSONString(ds, SerializerFeature.PrettyFormat);
+						String str = JSON.toJSONString(ds, SerializerFeature.PrettyFormat, SerializerFeature.WriteNullNumberAsZero);
 						outputStream.write(str.getBytes());
                 	}
                 	else System.out.println("命令错误，没有此项操作");
