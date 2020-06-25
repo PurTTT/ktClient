@@ -39,6 +39,9 @@ public interface AcMapper {
 	@Update("update room set dispatchTime = dispatchTime + 1 where roomNum = (#{roomNum})")
 	int updateDispatchTime(@Param("roomNum") Integer roomNum);
 
+	@Update("update room set windSpeed = 0, tagetTemperature = 26 where roomNum = (#{roomNum})")
+	int updateRoomWhenClose(@Param("roomNum") Integer roomNum);
+
 
 	@Select("select state from room where roomNum = (#{roomNum})")
 	int selectState(@Param("roomNum") Integer roomNum);
@@ -49,8 +52,8 @@ public interface AcMapper {
 	@Select("select roomNum from room")
 	List<Integer> selectRoomNum();
 
-//	@Select("select roomNum from room where windSpeed != 0")
-//	List<Integer> selectWorkingRoom();
+	@Select("select roomNum from room where windSpeed != 0")
+	List<Integer> selectWorkingRoom();
 
 	@Select("select * from room")
 	List<Room> findRoomList();
@@ -64,43 +67,49 @@ public interface AcMapper {
 	@Select("select lowerTem from room where roomNum = (#{roomNum})")
 	float selectLT(@Param("roomNum") Integer roomNum);
 
-	@Update("update room set temperature = temperature + 0.4 where windSpeed = 1 "
+	@Update("update room set temperature = temperature + 0.2 where windSpeed = 1 "
 			+ "and targetTemperature > temperature and state = 2")
 	int ScheduleUpdate();
 
-	@Update("update room set temperature = temperature + 0.5 where windSpeed = 2 "
+	@Update("update room set temperature = temperature + 0.25 where windSpeed = 2 "
 			+ "and targetTemperature > temperature and state = 2")
 	int ScheduleUpdate1();
 
-	@Update("update room set temperature = temperature + 0.6 where windSpeed = 3 "
+	@Update("update room set temperature = temperature + 0.3 where windSpeed = 3 "
 			+ "and targetTemperature > temperature and state = 2")
 	int ScheduleUpdate2();
 
-	@Update("update room set temperature = temperature - 0.4 where windSpeed = 1 "
+	@Update("update room set temperature = temperature - 0.2 where windSpeed = 1 "
 			+ "and targetTemperature < temperature and state = 2")
 	int ScheduleUpdate3();
 
-	@Update("update room set temperature = temperature - 0.5 where windSpeed = 2 "
+	@Update("update room set temperature = temperature - 0.25 where windSpeed = 2 "
 			+ "and targetTemperature < temperature and state = 2")
 	int ScheduleUpdate4();
 
-	@Update("update room set temperature = temperature - 0.6 where windSpeed = 3 "
+	@Update("update room set temperature = temperature - 0.3 where windSpeed = 3 "
 			+ "and targetTemperature < temperature and state = 2")
 	int ScheduleUpdate5();
 
 	@Update("update room set temperature = temperature - 0.5 where roomNum = (#{roomNum}) "
-			+ "and temperature > oriTemperature and state != 2")
+			+ "and temperature - oriTemperature >= 0.5 and state != 2")
 	int updateNotWorking1(@Param("roomNum") Integer roomNum);
 	@Update("update room set temperature = temperature + 0.5 where roomNum = (#{roomNum}) "
-			+ "and temperature < oriTemperature and state != 2")
+			+ "and oriTemperature - temperature >= 0.5 and state != 2")
 	int updateNotWorking2(@Param("roomNum") Integer roomNum);
+	@Update("update room set temperature = oriTemperature where roomNum = (#{roomNum}) "
+			+ "and temperature - oriTemperature < 0.5 and state != 2")
+	int updateNotWorking3(@Param("roomNum") Integer roomNum);
+	@Update("update room set temperature = oriTemperature where roomNum = (#{roomNum}) "
+			+ "and oriTemperature - temperature < 0.5 and state != 2")
+	int updateNotWorking4(@Param("roomNum") Integer roomNum);
 
 	@Update("update room set state = 3 where roomNum = (#{roomNum})"
-			+ " and ((pattern = 1 and temperature <= targetTemperature) or (pattern = 2 and temperature >= targetTemperature))")
+			+ " and ((pattern = 0 and temperature <= targetTemperature) or (pattern = 1 and temperature >= targetTemperature))")
 	int pause(@Param("roomNum") Integer roomNum);
 
 	@Update("update room set state = 2 where roomNum = (#{roomNum})"
-			+ " and ((pattern = 1 and temperature >= targetTemperature + 1.0) or (pattern = 2 and temperature <= targetTemperature - 1.0))")
+			+ " and ((pattern = 0 and temperature >= targetTemperature + 1.0) or (pattern = 1 and temperature <= targetTemperature - 1.0))")
 	int restart(@Param("roomNum") Integer roomNum);
 
 	/*DB-BillList*/

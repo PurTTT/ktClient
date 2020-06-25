@@ -41,6 +41,7 @@ public class AcService {
 	int updateFee(Integer fee) {//更新费率
 		return mapper.updateFee(fee);
 	}
+	int updateRoomWhenClose(Integer roomNum) { return mapper.updateRoomWhenClose(roomNum);}
 	int changeState(Integer state,Integer roomNum) {//更新状态 0关机 1开机
 		return mapper.changeState(state,roomNum);
 	}
@@ -48,7 +49,7 @@ public class AcService {
 		return mapper.findWind(roomNum);
 	}
 	List<Integer> selectRoomNum() {return mapper.selectRoomNum();}
-//	List<Integer> selectWorkingRoom(){return mapper.selectWorkingRoom();}
+	List<Integer> selectWorkingRoom(){return mapper.selectWorkingRoom();}
 	List<Room> findRoomList(){//显示所有用户信息
 		return mapper.findRoomList();
 	}
@@ -56,6 +57,8 @@ public class AcService {
 	float selectLT(Integer roomNum) {return mapper.selectLT(roomNum);}
 	int updateNotWorking1(Integer roomNum) {return mapper.updateNotWorking1(roomNum);}
 	int updateNotWorking2(Integer roomNum) {return mapper.updateNotWorking2(roomNum);}
+	int updateNotWorking3(Integer roomNum) {return mapper.updateNotWorking1(roomNum);}
+	int updateNotWorking4(Integer roomNum) {return mapper.updateNotWorking2(roomNum);}
 	int pause(Integer roomNum) {return mapper.pause(roomNum);}
 	int restart(Integer roomNum) {return mapper.restart(roomNum);}
 	List<UserCheck> findRoom(Integer roomNum){//显示用户信息
@@ -198,12 +201,14 @@ public class AcService {
             			double eSpeed = 0.33;	//耗电速度
             			if(findWind(room_id) == 2) eSpeed = 0.5; else if(findWind(room_id) == 3) eSpeed = 1;
                 		long windTime = dispatch.getWtime();
-                		double fee = windTime*1*eSpeed; //送风时间*1元/度*耗电标准
+                		double fee = windTime*1*eSpeed/60.00; //送风时间*1元/度*耗电标准
                 		if(result == 0) { //等待队列为空
                 			updateBill(btime,windTime,fee,room_id);
+							updateRoomWhenClose(room_id);
                 		}
                 		else if(result == 1) { //等待队列中最高风速接受服务
                 			updateBill(btime,windTime,fee,room_id);
+							updateRoomWhenClose(room_id);
                 			newBill(room_id,btime,1,eSpeed);
                 		}
                 	}
@@ -233,7 +238,7 @@ public class AcService {
 							double preeSpeed = 0.33;	//耗电速度
 							if(findWind(room_id) == 2) preeSpeed = 0.5; else if(findWind(room_id) == 3) preeSpeed = 1;
 							long windTime = dispatch.getWtime();
-							double fee = windTime*1*preeSpeed; //送风时间*1元/度*耗电标准
+							double fee = windTime*1*preeSpeed/60.00; //送风时间*1元/度*耗电标准
 							updateBill(btime,windTime,fee,room_id);
                 			//更新room中的设置，申请新请求
 							int r0 = updateTandW(wind,tem,room_id, 2);	//DB-room
@@ -252,7 +257,7 @@ public class AcService {
 							int dt0 = updateDispatchTime(room_id); //被调度次数+1
                 			int r1 = updateTandW(0,26.0,dResult,3);	//DB-room
                 			long windTime = dispatch.getWtime();	//计算送风时长
-                			double fee = windTime*eSpeed*1;	//费用
+                			double fee = windTime*eSpeed*1/60.00;	//费用
                 			newBill(room_id,btime,1,eSpeed);	//DB-billList
                 			updateBill(btime,windTime,fee,dResult);	//DB-billList
                 		}
@@ -333,23 +338,24 @@ public class AcService {
 				e.printStackTrace();
 			}
 			if(rs[0].getRoomId()!=0) {
-				System.out.println("抢占成功");
+				System.out.println("时间片轮转:"+rs[0].getRoomId()+"替换"+rs[1].getRoomId());
 				double eSpeed = 0.33;
 				if(rs[0].getWind() == 2) eSpeed = 0.5;
 				else if(rs[0].getWind() == 3) eSpeed = 1;
 				updateTandW(rs[0].getWind(),rs[0].getTemperature(),rs[0].getRoomId(),2);	//DB-room
-				int dt0 = updateDispatchTime(rs[0].getRoomId()); //被调度次数+1
+				updateDispatchTime(rs[0].getRoomId()); //被调度次数+1
 				updateTandW(0,26,rs[1].getRoomId(),3);	//DB-room
 				newBill(rs[0].getRoomId(),rs[0].getBeginTime(),1,eSpeed);
 				long windTime = dispatch.getWtime();
-				double fee = windTime*eSpeed*1;
+				double fee = windTime*eSpeed*1/60.00;
 				updateBill(rs[0].getBeginTime(),windTime,fee,rs[1].getRoomId());
 			}
 
-			List<Integer> roomNum = selectRoomNum();
+			List<Integer> roomNum = selectWorkingRoom();
 			for(Integer i : roomNum) {
-				int p = pause(i); //判断是否要暂停，state=3
-				int rt = restart(i); //判断是否重新启动，state=2
+				pause(i); //判断是否要暂停，state=3
+				restart(i); //判断是否重新启动，state=2
+				System.out.println("被服务房间判断暂停或复工更新");
 			}
 	    }
 	}
@@ -359,8 +365,11 @@ public class AcService {
 		public void run() {
 			List<Integer> roomNum = selectRoomNum();
 			for(Integer i : roomNum) {
-				int nk1 = updateNotWorking1(i); //当前温度>初始温度
-				int nk2 = updateNotWorking2(i); //当前温度<初始温度
+				updateNotWorking1(i); //当前温度>初始温度
+				updateNotWorking2(i); //当前温度<初始温度
+				updateNotWorking3(i); //差距小于0.5度的情况
+				updateNotWorking4(i);
+				System.out.println("非工作状态回温更新");
 			}
 		}
 	}

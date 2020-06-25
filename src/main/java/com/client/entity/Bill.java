@@ -5,7 +5,7 @@ package com.client.entity;
 */
 public class Bill {
 	Integer roomId;	//房间ID
-	Integer totalFee;	//总费用
+	Float totalFee;	//总费用
 	String inTime;	//入住时间
 	String outTime;	//退房时间
 	public Integer getRoomId(){
@@ -14,10 +14,10 @@ public class Bill {
 	public void setRoomId(Integer roomId){
 		this.roomId = roomId;
 	}
-	public Integer getTotalFee(){
+	public Float getTotalFee(){
 		return totalFee;
 	}
-	public void setTotalFee(Integer totalFee){
+	public void setTotalFee(Float totalFee){
 		this.totalFee = totalFee;
 	}
 	public String getIntime() {

@@ -60,10 +60,10 @@ public class Dispatch {
 					waitNum--;
 				}
 			}
-			System.out.println("进入请求队列");
 			waitLine[w].setRoomId(roomId);
 			waitLine[w].setTemperature(tem);
 			waitLine[w].setWind(wind);
+			System.out.println(waitLine[w].getRoomId()+"进入请求队列");
 			for(int i=0;i<workNum;i++) {
 				if(workLine[i].getWind() < wind) {
 					wind = workLine[i].getWind();
@@ -137,9 +137,9 @@ public class Dispatch {
 				waitLine[k].setBeginTime(btime);
 				rs[1] = waitLine[k];
 				waitLine[k].setBeginTime("0");
-				System.out.println("["+rs[0].getRoomId());
-
-				System.out.println(rs[0].getRoomId()+"替换"+rs[1].getRoomId());
+//				System.out.println("["+rs[0].getRoomId());
+//
+//				System.out.println(rs[0].getRoomId()+"替换"+rs[1].getRoomId());
 				rs1 = rs;
 			}
 		}
