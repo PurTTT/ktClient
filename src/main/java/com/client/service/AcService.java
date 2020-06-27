@@ -209,6 +209,31 @@ public class AcService {
                 	if(num2 == 1) {		//房间空调开机
                 		changeState(3,room_id);	//DB-room，未送风时，空调为暂停状态
 						addOpenTime(room_id); //房间空调开关机次数+1
+						int dResult = dispatch.newRequset(room_id, 2, 25); //调度
+						if(dResult == 0) {//放入等待队列
+						}
+						else if(dResult == 2) {
+							String btime = dispatch.getBtime();
+							updateTandW(2,25,room_id, 2);	//DB-room
+							updateDispatchTime(room_id); //被调度次数+1
+							System.out.println(room_id + "获得服务");
+							newBill(room_id,btime,1,0.5);	//DB-billList
+						}
+						else {
+							String btime = dispatch.getBtime();
+							updateTandW(2,25,room_id,2);	//DB-room
+							updateDispatchTime(room_id); //被调度次数+1
+							updateTandW(2,25.0,dResult,3);	//DB-room
+							long windTime = dispatch.getWtime();	//计算送风时长
+							int wind = findWind(dResult);
+							double eSpeed1 = 0.33;	//耗电速度
+							if(wind == 2) eSpeed1 = 0.5; else if(wind == 3) eSpeed1 = 1;
+							double fee = windTime*eSpeed1*1/60.00;	//费用
+							newBill(room_id,btime,1,0.5);	//DB-billList
+							updateBill(btime,windTime,fee,dResult);	//DB-billList
+							System.out.println(room_id + "替换" + dResult);
+						}
+
                 	}
                 	else if(num2 == 2) {	//房间空调关机
                 		changeState(1,room_id);
@@ -222,10 +247,10 @@ public class AcService {
                 			updateBill(btime,windTime,fee,room_id);
 							updateRoomWhenClose(room_id);
                 		}
-                		else if(result == 1) { //等待队列中最高风速接受服务
+                		else if(result > 100) { //等待队列中最高风速接受服务
                 			updateBill(btime,windTime,fee,room_id);
 							updateRoomWhenClose(room_id);
-                			newBill(room_id,btime,1,eSpeed);
+                			newBill(result,btime,1,eSpeed);
                 		}
                 	}
                 	else if(num2 == 3) {	//风速，温度调节请求
@@ -236,11 +261,11 @@ public class AcService {
 						if(wind != 0) //调风请求数+1
 							addWR(room_id);
 						else //缺省风速为中风
-							wind = 2;
+							wind = findWind(room_id);
 						if(tem != 0) //调温请求数+1
 							addTR(room_id);
 						else //缺省温度为25度
-							tem = 25;
+							tem = findTarget(room_id);
                         newRequest(room_id, wind, tem, nowtime);//DB-request
                 		int dResult = dispatch.newRequset(room_id, wind, tem);
             			double eSpeed = 0.33;	//耗电速度
@@ -260,7 +285,32 @@ public class AcService {
 							updateTandW(wind,tem,room_id, 2);	//DB-room
 							updateDispatchTime(room_id); //被调度次数+1
 							System.out.println(room_id + "替换自己");
-                			newBill(room_id,btime,1,eSpeed);	//DB-billList
+//                			newBill(room_id,btime,1,eSpeed);	//DB-billList
+							int dResult1 = dispatch.newRequset(room_id, wind, tem);
+							if(dResult1 == 0) {
+
+							}
+							else if(dResult1 == 2) {
+								String btime1 = dispatch.getBtime();
+								updateTandW(wind, tem, room_id, 2);    //DB-room
+								updateDispatchTime(room_id); //被调度次数+1
+								System.out.println(room_id + "获得服务");
+								newBill(room_id, btime1, 1, eSpeed);    //DB-billList
+							}
+							else {
+								String btime1 = dispatch.getBtime();
+								updateTandW(wind,tem,room_id,2);	//DB-room
+								updateDispatchTime(room_id); //被调度次数+1
+								updateTandW(2,25.0,dResult1,3);	//DB-room
+								long windTime1 = dispatch.getWtime();	//计算送风时长
+								int wind1 = findWind(dResult1);
+								double eSpeed1 = 0.33;	//耗电速度
+								if(wind1 == 2) eSpeed1 = 0.5; else if(wind1 == 3) eSpeed1 = 1;
+								double fee1 = windTime1*eSpeed1*1/60.00;	//费用
+								newBill(room_id,btime,1,eSpeed);	//DB-billList
+								updateBill(btime1,windTime1,fee1,dResult1);	//DB-billList
+								System.out.println(room_id + "替换" + dResult1);
+							}
                 		}
                 		else if(dResult == 2) {
 							String btime = dispatch.getBtime();
@@ -273,9 +323,12 @@ public class AcService {
                 			String btime = dispatch.getBtime();
                 			updateTandW(wind,tem,room_id,2);	//DB-room
 							updateDispatchTime(room_id); //被调度次数+1
-                			updateTandW(0,25.0,dResult,3);	//DB-room
+                			updateTandW(2,25.0,dResult,3);	//DB-room
                 			long windTime = dispatch.getWtime();	//计算送风时长
-                			double fee = windTime*eSpeed*1/60.00;	//费用
+							int wind1 = findWind(dResult);
+							double eSpeed1 = 0.33;	//耗电速度
+							if(wind1 == 2) eSpeed1 = 0.5; else if(wind1 == 3) eSpeed1 = 1;
+                			double fee = windTime*eSpeed1*1/60.00;	//费用
                 			newBill(room_id,btime,1,eSpeed);	//DB-billList
                 			updateBill(btime,windTime,fee,dResult);	//DB-billList
 							System.out.println(room_id + "替换" + dResult);
@@ -305,15 +358,12 @@ public class AcService {
 							fee += tf;
 						else //无
 							fee += 0;
-
 //						System.out.println(windTime + "," + fee); //debug用
-
 						//Json字符串，有转义（double保留两位小数问题）
 						String usercheck = "{\"roomNum\":" + Integer.toString(room_id) + ",\"pattern\":" + Integer.toString(selectPattern(room_id)) +
 								",\"temperature\":" + Float.toString(selectNowTemp(room_id)) + ",\"targetTemperature\":" + Float.toString(findTarget(room_id)) + ",\"windSpeed\":" + Integer.toString(wind) +
 								",\"windTime\":" + Long.toString(windTime) + ",\"totalFee\":" + Double.toString(fee) + "}";
-
-						System.out.println(usercheck); //debug用
+//						System.out.println(usercheck); //debug用
 						JSONObject object = JSONObject.parseObject(usercheck); //输出
 						String str = JSON.toJSONString(object, SerializerFeature.PrettyFormat, SerializerFeature.WriteNullNumberAsZero);
 						outputStream.write(str.getBytes());
@@ -396,7 +446,7 @@ public class AcService {
 				else if(rs[0].getWind() == 3) eSpeed = 1;
 				updateTandW(rs[0].getWind(),rs[0].getTemperature(),rs[0].getRoomId(),2);	//DB-room
 				updateDispatchTime(rs[0].getRoomId()); //被调度次数+1
-				updateTandW(0,25,rs[1].getRoomId(),3);	//DB-room
+				updateTandW(2,25,rs[1].getRoomId(),3);	//DB-room
 				newBill(rs[0].getRoomId(),rs[0].getBeginTime(),1,eSpeed);
 				long windTime = dispatch.getWtime();
 				double fee = windTime*eSpeed*1/60.00;

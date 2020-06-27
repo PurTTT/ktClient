@@ -177,7 +177,7 @@ public class Dispatch {
 				}
 				workLine[i] = rs;
 				workLine[i].setBeginTime(btime);
-				return 1;
+				return rs.getRoomId();
 			}
 		}
 		for(int i=0;i<waitNum;i++) {
