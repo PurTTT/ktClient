@@ -62,9 +62,14 @@ public class Dispatch {
 					waitNum--;
 				}
 			}
-			waitLine[w].setRoomId(roomId);
-			waitLine[w].setTemperature(tem);
-			waitLine[w].setWind(wind);
+//			waitLine[w].setRoomId(roomId);
+//			waitLine[w].setTemperature(tem);
+//			waitLine[w].setWind(wind);
+			Request rs = new Request();
+			rs.setRoomId(roomId);
+			rs.setTemperature(tem);
+			rs.setWind(wind);
+			waitLine[w] = rs;
 			System.out.println(waitLine[w].getRoomId()+"进入请求队列");
 			for(int i=0;i<workNum;i++) {
 				if(workLine[i].getWind() < wind) {
@@ -108,6 +113,7 @@ public class Dispatch {
 		for(int i=0;i<workNum;i++) {
 			Request[] rs = new Request[2];
 			rs[0] = r; rs[1] = r;
+			System.out.println(workLine[i].getRoomId()+ "：" + workLine[i].getBeginTime());
 			btime0 = dateToStamp(workLine[i].getBeginTime());
 			if(nowTime-btime0>60000) {	//超过1分钟
 				System.out.println(workLine[i].getRoomId()+"工作时间over，可能被替换[");
@@ -131,7 +137,11 @@ public class Dispatch {
 				int wind = workLine[i].getWind();
 				int roomId = workLine[i].getRoomId();
 				float tem = workLine[i].getTemperature();
-				workLine[i] = rs[0];
+//				workLine[i] = rs[0];
+				workLine[i].setBeginTime(rs[0].getBeginTime());
+				workLine[i].setRoomId(rs[0].getRoomId());
+				workLine[i].setTemperature(rs[0].getTemperature());
+				workLine[i].setWind(rs[0].getWind());
 				//System.out.println("["+rs[0].getRoomId());
 				waitLine[k].setRoomId(roomId);
 				waitLine[k].setTemperature(tem);
@@ -143,6 +153,7 @@ public class Dispatch {
 //
 //				System.out.println(rs[0].getRoomId()+"替换"+rs[1].getRoomId());
 				rs1 = rs;
+				return rs1;
 			}
 		}
 		return rs1;
