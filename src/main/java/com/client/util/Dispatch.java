@@ -37,6 +37,8 @@ public class Dispatch {
 			for(int i=0;i<busyNum;i++) {
 				if(roomId == workLine[i].getRoomId()) {
 					//workLine[i].setWind(wind);	//查看工作队列中是否已有该房间
+					workLine[i].setTemperature(tem);
+					workLine[i].setWind(wind);
 					return 1;
 				}
 			}

@@ -52,6 +52,9 @@ public interface AcMapper {
 	@Select("select windSpeed from room where roomNum = (#{roomNum})")
 	int findWind(@Param("roomNum") Integer roomNum);
 
+	@Select("select targetTemperature from room where roomNum = (#{roomNum})")
+	float findTarget(@Param("roomNum") Integer roomNum);
+
 	@Select("select roomNum from room")
 	List<Integer> selectRoomNum();
 
@@ -156,7 +159,7 @@ public interface AcMapper {
 			+ " and date_format(beginTime,'%Y-%m-%d') >= (#{beginTime}) GROUP BY roomId")
 	List<DailySheet> checkDailySheet(@Param("beginTime") String beginTime, @Param("endTime") String endTime);
 
-	@Select("select SUM(windTime) from BillList where roomId = (#{roomId}) and beginTime >= (#{inTime}) and endTime is null")
+	@Select("select SUM(windTime) from BillList where roomId = (#{roomId}) and beginTime >= (#{inTime}) and endTime is not null")
 	Integer selectWindTimeSum(@Param("roomId") Integer roomId, @Param("inTime") String inTime);
 
 	/*DB-totalBill*/

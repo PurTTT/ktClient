@@ -58,6 +58,7 @@ public class AcService {
 		return mapper.findRoomList();
 	}
 	float selectNowTemp(Integer roomNum) {return mapper.selectNowTemp(roomNum);}
+	float findTarget(Integer roomNum) { return mapper.findTarget(roomNum);}
 	float selectUT(Integer roomNum) {return mapper.selectUT(roomNum);}
 	float selectLT(Integer roomNum) {return mapper.selectLT(roomNum);}
 	int updateNotWorking1(Integer roomNum) {return mapper.updateNotWorking1(roomNum);}
@@ -238,8 +239,8 @@ public class AcService {
 							wind = 2;
 						if(tem != 0) //调温请求数+1
 							addTR(room_id);
-						else //缺省温度为26度
-							tem = 26;
+						else //缺省温度为25度
+							tem = 25;
                         newRequest(room_id, wind, tem, nowtime);//DB-request
                 		int dResult = dispatch.newRequset(room_id, wind, tem);
             			double eSpeed = 0.33;	//耗电速度
@@ -272,7 +273,7 @@ public class AcService {
                 			String btime = dispatch.getBtime();
                 			updateTandW(wind,tem,room_id,2);	//DB-room
 							updateDispatchTime(room_id); //被调度次数+1
-                			updateTandW(0,26.0,dResult,3);	//DB-room
+                			updateTandW(0,25.0,dResult,3);	//DB-room
                 			long windTime = dispatch.getWtime();	//计算送风时长
                 			double fee = windTime*eSpeed*1/60.00;	//费用
                 			newBill(room_id,btime,1,eSpeed);	//DB-billList
@@ -284,11 +285,11 @@ public class AcService {
                 		String uBeginTime = selectBeginTime(room_id); //获得正在运行任务的开始时间
                 		long nowTime = System.currentTimeMillis(); //获得当前时间（毫秒）
 						long windTime = 0;
-						System.out.println(uBeginTime); //debug用
+//						System.out.println(uBeginTime); //debug用
                 		if (uBeginTime != null) { //存在正在运行的任务
 							windTime = (nowTime - dispatch.dateToStamp(uBeginTime)) / 1000; //得部分送风时长（秒）
 						}
-                		System.out.println(windTime); //debug用
+//                		System.out.println(windTime); //debug用
                 		int wind = findWind(room_id); //风速
 						double eSpeed = 0.33;	//耗电速度
 						if(wind == 2) eSpeed = 0.5; else if(wind == 3) eSpeed = 1;
@@ -305,11 +306,11 @@ public class AcService {
 						else //无
 							fee += 0;
 
-						System.out.println(windTime + "," + fee); //debug用
+//						System.out.println(windTime + "," + fee); //debug用
 
 						//Json字符串，有转义（double保留两位小数问题）
 						String usercheck = "{\"roomNum\":" + Integer.toString(room_id) + ",\"pattern\":" + Integer.toString(selectPattern(room_id)) +
-								",\"temperature\":" + Float.toString(selectNowTemp(room_id)) + ",\"windSpeed\":" + Integer.toString(wind) +
+								",\"temperature\":" + Float.toString(selectNowTemp(room_id)) + ",\"targetTemperature\":" + Float.toString(findTarget(room_id)) + ",\"windSpeed\":" + Integer.toString(wind) +
 								",\"windTime\":" + Long.toString(windTime) + ",\"totalFee\":" + Double.toString(fee) + "}";
 
 						System.out.println(usercheck); //debug用
@@ -395,7 +396,7 @@ public class AcService {
 				else if(rs[0].getWind() == 3) eSpeed = 1;
 				updateTandW(rs[0].getWind(),rs[0].getTemperature(),rs[0].getRoomId(),2);	//DB-room
 				updateDispatchTime(rs[0].getRoomId()); //被调度次数+1
-				updateTandW(0,26,rs[1].getRoomId(),3);	//DB-room
+				updateTandW(0,25,rs[1].getRoomId(),3);	//DB-room
 				newBill(rs[0].getRoomId(),rs[0].getBeginTime(),1,eSpeed);
 				long windTime = dispatch.getWtime();
 				double fee = windTime*eSpeed*1/60.00;
@@ -406,8 +407,8 @@ public class AcService {
 			for(Integer i : roomNum) {
 				pause(i); //判断是否要暂停，state=3
 				restart(i); //判断是否重新启动，state=2
-				System.out.println("被服务房间判断暂停或复工更新");
 			}
+			System.out.println("被服务房间判断暂停或复工更新");
 	    }
 	}
 
@@ -419,8 +420,8 @@ public class AcService {
 				updateNotWorking3(i); //差距小于0.5度的情况
 				updateNotWorking1(i); //当前温度>初始温度
 				updateNotWorking2(i); //当前温度<初始温度
-				System.out.println(i + "非工作状态回温更新");
 			}
+			System.out.println("非工作状态回温更新");
 		}
 	}
 }
