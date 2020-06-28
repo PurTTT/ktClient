@@ -115,7 +115,7 @@ public class Dispatch {
 			rs[0] = r; rs[1] = r;
 			System.out.println(workLine[i].getRoomId()+ "：" + workLine[i].getBeginTime());
 			btime0 = dateToStamp(workLine[i].getBeginTime());
-			if(nowTime-btime0>60000) {	//超过1分钟
+			if(nowTime-btime0>120000) {	//超过2分钟
 				System.out.println(workLine[i].getRoomId()+"工作时间over，可能被替换[");
 				for(int j=0;j<waitNum;j++) {	//查看请求队列中最大的风速请求
 					if(maxWind < waitLine[j].getWind())

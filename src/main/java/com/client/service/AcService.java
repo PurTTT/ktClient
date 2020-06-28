@@ -283,7 +283,7 @@ public class AcService {
 							updateBill(btime,windTime,fee,room_id);
                 			//更新room中的设置，申请新请求
 							updateTandW(wind,tem,room_id, 2);	//DB-room
-							updateDispatchTime(room_id); //被调度次数+1
+//							updateDispatchTime(room_id); //被调度次数+1
 							System.out.println(room_id + "替换自己");
 //                			newBill(room_id,btime,1,eSpeed);	//DB-billList
 							int dResult1 = dispatch.newRequset(room_id, wind, tem);

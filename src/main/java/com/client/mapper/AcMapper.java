@@ -12,6 +12,8 @@ import org.apache.ibatis.annotations.Update;
 @Mapper
 public interface AcMapper {
 
+//	@Insert("in")
+
 	@Update("update room set pattern=(#{pattern}),upperTem=(#{upperTem}),lowerTem=(#{lowerTem}),feeRate=(#{feeRate})")
 	int updateMode(@Param("pattern") Integer mode, @Param("upperTem")
 			Float upperTem, @Param("lowerTem") Float lowerTemroomNum, @Param("feeRate") Integer fee);
@@ -58,7 +60,7 @@ public interface AcMapper {
 	@Select("select roomNum from room")
 	List<Integer> selectRoomNum();
 
-	@Select("select roomNum from room where windSpeed != 0")
+	@Select("select roomId from BillList where endTime is null")
 	List<Integer> selectWorkingRoom();
 
 	@Select("select * from room")
@@ -121,11 +123,11 @@ public interface AcMapper {
 	@Update("update room set temperature = oriTemperature where state != 2 and ABS(temperature - oriTemperature) < 0.5")
 	int updateNotWorking3(@Param("roomNum") Integer roomNum);
 
-	@Update("update room set state = 3 where roomNum = (#{roomNum})"
+	@Update("update room set state = 3 where roomNum = (#{roomNum}) and state = 2"
 			+ " and ((pattern = 0 and temperature <= targetTemperature) or (pattern = 1 and temperature >= targetTemperature))")
 	int pause(@Param("roomNum") Integer roomNum);
 
-	@Update("update room set state = 2 where roomNum = (#{roomNum})"
+	@Update("update room set state = 2 where roomNum = (#{roomNum}) and state = 3"
 			+ " and ((pattern = 0 and temperature >= targetTemperature + 1.0) or (pattern = 1 and temperature <= targetTemperature - 1.0))")
 	int restart(@Param("roomNum") Integer roomNum);
 
